@@ -2,6 +2,7 @@ package priceme.persistence;
 
 import com.google.common.base.MoreObjects;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
  * Represents a price object tied to a product
@@ -14,6 +15,7 @@ public class Price {
     /**
      * The product id the price is tied to (e.g. 13860428)
      */
+    @Indexed(unique = true)
     private String productId;
 
     /**
