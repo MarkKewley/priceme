@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import priceme.exception.NoSuchRecordException;
 import priceme.persistence.Price;
-import priceme.service.ProductService;
+import priceme.service.PriceService;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -16,10 +16,11 @@ import java.util.*;
  */
 @RestController
 public class ProductController {
-    private static final Set<String> REQUIRED_PRICE_FIELDS = Sets.newHashSet("value", "currencyCode");
+    private static final String PRICE_VALUE_FIELD = "value";
+    private static final String PRICE_CURRENT_PRICE_FIELD = "current_price";
 
     @Autowired
-    private ProductService productService;
+    private PriceService priceService;
 
     /**
      * Given an {@code id} this will retrieve pricing information from multiple retailer websites for a given
@@ -30,8 +31,8 @@ public class ProductController {
      * @throws NoSuchRecordException Thrown if no such {@link Price} exists in our database
      */
     @RequestMapping(value = "/products/{id}")
-    public Map<String, Object> viewProduct(@PathVariable("id") final String id) throws NoSuchRecordException {
-        return productService.retrieveProductAndPricingInformation(id);
+    public Map<String, List> viewProduct(@PathVariable("id") final String id) throws NoSuchRecordException {
+        return priceService.combineProductAndPricingInformation(id);
     }
 
     /**
@@ -43,9 +44,9 @@ public class ProductController {
      * @throws NoSuchRecordException Thrown if no such {@link Price} exists in our database
      */
     @RequestMapping(method = RequestMethod.PUT, value = "/products/{id}")
-    public Price updateProduct(@PathVariable("id") final String id, @RequestParam("currentPrice") final Map<String, Object> newPriceInformation) throws NoSuchRecordException {
+    public Price updateProduct(@PathVariable("id") final String id, @RequestParam("current_price") final Map<String, Object> newPriceInformation) throws NoSuchRecordException {
         validatePriceMap(newPriceInformation);
-        return productService.updateProductPricingInformation(id, newPriceInformation);
+        return priceService.updateProductPricingInformation(id, (Double) newPriceInformation.get(PRICE_VALUE_FIELD), (String) newPriceInformation.get(PRICE_CURRENT_PRICE_FIELD));
     }
 
     /**
@@ -54,14 +55,17 @@ public class ProductController {
      * @param priceMapToCheck {@link Map} the price map we wish to validate from the request
      */
     private void validatePriceMap(final Map<String, Object> priceMapToCheck) {
+        boolean isInvalid = true;
         if (priceMapToCheck != null) {
-            final Set<String> keys = priceMapToCheck.keySet();
-            if (Sets.intersection(keys, REQUIRED_PRICE_FIELDS).size() == REQUIRED_PRICE_FIELDS.size()) {
-                return;
-            }
+            isInvalid &= priceMapToCheck.containsKey(PRICE_VALUE_FIELD)
+                    && priceMapToCheck.containsKey(PRICE_CURRENT_PRICE_FIELD)
+                    && priceMapToCheck.get(PRICE_VALUE_FIELD) instanceof Double
+                    && priceMapToCheck.get(PRICE_CURRENT_PRICE_FIELD) instanceof String;
         }
 
-        throw new InvalidParameterException("currentPrice");
+        if (isInvalid) {
+            throw new InvalidParameterException("currentPrice");
+        }
     }
 
 }
