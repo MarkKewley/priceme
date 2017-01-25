@@ -7,7 +7,7 @@ package priceme.api;
  * @author MarkKewley
  */
 public final class ExternalApiUtils {
-    private static final String TARGET_API_FORMAT = "https://api.target.com/products/v3/%s?fields=descriptions&id_type=TCIN&key=43cJWpLjH8Z8oR18KdrZDBKAgLLQKJjz";
+    private static final String TARGET_API_FORMAT = "https://api.targetapi.com/products/v3/%s?fields=descriptions&id_type=TCIN&key=43cJWpLjH8Z8oR18KdrZDBKAgLLQKJjz";
 
     private ExternalApiUtils() {}
 
